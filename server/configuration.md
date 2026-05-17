@@ -10,10 +10,10 @@ Example files in this repository:
 
 | File | Purpose |
 |------|---------|
-| [`example.config.toml`](example.config.toml) | Docker runtime (English) |
-| [`example.config.zh.toml`](example.config.zh.toml) | Docker runtime (中文) |
-| [`example.config.k8s.toml`](example.config.k8s.toml) | Kubernetes runtime (English) |
-| [`example.config.k8s.zh.toml`](example.config.k8s.zh.toml) | Kubernetes runtime (中文) |
+| [`example.config.toml`](opensandbox_server/examples/example.config.toml) | Docker runtime (English) |
+| [`example.config.zh.toml`](opensandbox_server/examples/example.config.zh.toml) | Docker runtime (中文) |
+| [`example.config.k8s.toml`](opensandbox_server/examples/example.config.k8s.toml) | Kubernetes runtime (English) |
+| [`example.config.k8s.zh.toml`](opensandbox_server/examples/example.config.k8s.zh.toml) | Kubernetes runtime (中文) |
 
 ---
 
