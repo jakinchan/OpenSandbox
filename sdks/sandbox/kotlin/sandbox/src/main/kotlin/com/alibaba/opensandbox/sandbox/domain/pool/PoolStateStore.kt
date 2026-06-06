@@ -50,21 +50,15 @@ interface PoolStateStore {
      * so those sandboxes do not linger past their pool membership and consume quota until
      * server-side TTL.
      *
-     * Default implementation falls back to [tryTakeIdle] when [minRemainingTtl] is zero or
-     * negative so existing custom store implementations remain source-compatible.
+     * Default implementation delegates to [tryTakeIdle] for source compatibility with stores
+     * that predate this method. Such stores cannot surface near-expiry entries, so the
+     * discarded-alive list is always empty regardless of [minRemainingTtl]. Stores that
+     * genuinely want near-expiry filtering must override this method.
      */
     fun tryTakeIdle(
         poolName: String,
         minRemainingTtl: Duration,
-    ): TakeIdleResult {
-        if (minRemainingTtl.isNegative || minRemainingTtl.isZero) {
-            return TakeIdleResult.of(tryTakeIdle(poolName))
-        }
-        // Custom stores predating this method only implement the binary-expiry path. Filtering
-        // is best-effort: they cannot surface near-expiry entries, so the discarded-alive list
-        // is empty. Stores that genuinely want near-expiry filtering must override this method.
-        return TakeIdleResult.of(tryTakeIdle(poolName))
-    }
+    ): TakeIdleResult = TakeIdleResult.of(tryTakeIdle(poolName))
 
     /**
      * Adds a sandbox ID to the idle set for the pool.
@@ -130,19 +124,16 @@ interface PoolStateStore {
      * already reaped them. Callers should best-effort terminate every returned ID so those
      * sandboxes do not linger past their pool membership.
      *
-     * Default implementation falls back to [reapExpiredIdle] when [minRemainingTtl] is zero or
-     * negative so existing custom store implementations remain source-compatible. Stores that
-     * predate this method cannot surface near-expiry entries; they return an empty list.
+     * Default implementation delegates to [reapExpiredIdle] for source compatibility with stores
+     * that predate this method. Such stores cannot surface near-expiry entries; they return an
+     * empty list regardless of [minRemainingTtl]. Stores that genuinely want near-expiry
+     * filtering must override this method.
      */
     fun reapExpiredIdle(
         poolName: String,
         now: Instant,
         minRemainingTtl: Duration,
     ): List<String> {
-        if (minRemainingTtl.isNegative || minRemainingTtl.isZero) {
-            reapExpiredIdle(poolName, now)
-            return emptyList()
-        }
         reapExpiredIdle(poolName, now)
         return emptyList()
     }

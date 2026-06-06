@@ -28,16 +28,16 @@ package com.alibaba.opensandbox.sandbox.domain.pool
  * Already-expired entries (server-side TTL has elapsed) are intentionally not included:
  * the server has already reaped them and a kill call would be a wasted round-trip.
  */
-class TakeIdleResult(
+data class TakeIdleResult(
     val sandboxId: String?,
-    val discardedAliveSandboxIds: List<String>,
+    val discardedAliveSandboxIds: List<String> = emptyList(),
 ) {
     companion object {
         @JvmStatic
-        val EMPTY: TakeIdleResult = TakeIdleResult(sandboxId = null, discardedAliveSandboxIds = emptyList())
+        val EMPTY: TakeIdleResult = TakeIdleResult(sandboxId = null)
 
         @JvmStatic
         fun of(sandboxId: String?): TakeIdleResult =
-            if (sandboxId == null) EMPTY else TakeIdleResult(sandboxId, emptyList())
+            if (sandboxId == null) EMPTY else TakeIdleResult(sandboxId)
     }
 }

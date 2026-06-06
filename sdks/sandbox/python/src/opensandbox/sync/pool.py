@@ -447,10 +447,18 @@ class SandboxPoolSync:
         config._owns_transport = True
         return config
 
-    def _kill_sandbox_best_effort(self, sandbox_id: str) -> None:
+    def _kill_sandbox_best_effort(self, sandbox_id: str) -> bool:
+        """Best-effort kill a sandbox via the pool's manager.
+
+        Returns ``True`` on a confirmed kill, ``False`` if no manager is available or the
+        kill raised. Failures are logged at WARNING and swallowed so the caller's primary
+        outcome is unaffected.
+        """
+        if self._sandbox_manager is None:
+            return False
         try:
-            if self._sandbox_manager is not None:
-                self._sandbox_manager.kill_sandbox(sandbox_id)
+            self._sandbox_manager.kill_sandbox(sandbox_id)
+            return True
         except Exception as exc:
             logger.warning(
                 "Pool sandbox cleanup failed: pool_name=%s sandbox_id=%s error=%s",
@@ -458,6 +466,7 @@ class SandboxPoolSync:
                 sandbox_id,
                 exc,
             )
+            return False
 
     def _kill_discarded_alive(
         self,
@@ -472,13 +481,13 @@ class SandboxPoolSync:
         if not sandbox_ids:
             return
         for sandbox_id in sandbox_ids:
-            self._kill_sandbox_best_effort(sandbox_id)
-            logger.debug(
-                "Killed near-expiry idle sandbox: pool_name=%s sandbox_id=%s source=%s",
-                pool_name,
-                sandbox_id,
-                source,
-            )
+            if self._kill_sandbox_best_effort(sandbox_id):
+                logger.debug(
+                    "Killed near-expiry idle sandbox: pool_name=%s sandbox_id=%s source=%s",
+                    pool_name,
+                    sandbox_id,
+                    source,
+                )
 
     def _begin_operation(self) -> None:
         with self._in_flight_condition:

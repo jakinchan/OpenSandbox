@@ -465,10 +465,17 @@ class SandboxPoolAsync:
         config._owns_transport = True
         return config
 
-    async def _kill_sandbox_best_effort(self, sandbox_id: str) -> None:
+    async def _kill_sandbox_best_effort(self, sandbox_id: str) -> bool:
+        """Best-effort kill a sandbox via the pool's manager.
+
+        Returns ``True`` on a confirmed kill, ``False`` if no manager is available or the
+        kill raised. Failures are logged at WARNING and swallowed.
+        """
+        if self._sandbox_manager is None:
+            return False
         try:
-            if self._sandbox_manager is not None:
-                await self._sandbox_manager.kill_sandbox(sandbox_id)
+            await self._sandbox_manager.kill_sandbox(sandbox_id)
+            return True
         except Exception as exc:
             logger.warning(
                 "Async pool sandbox cleanup failed: pool_name=%s sandbox_id=%s error=%s",
@@ -476,6 +483,7 @@ class SandboxPoolAsync:
                 sandbox_id,
                 exc,
             )
+            return False
 
     async def _kill_discarded_alive(
         self,
@@ -483,17 +491,25 @@ class SandboxPoolAsync:
         sandbox_ids: tuple[str, ...],
         source: str,
     ) -> None:
-        """Async counterpart of :meth:`SandboxPoolSync._kill_discarded_alive`."""
+        """Async counterpart of :meth:`SandboxPoolSync._kill_discarded_alive`.
+
+        Kills run concurrently via :func:`asyncio.gather` so a batch of N near-expiry IDs
+        does not serially block the caller's ``acquire()`` on N network round-trips.
+        """
         if not sandbox_ids:
             return
-        for sandbox_id in sandbox_ids:
-            await self._kill_sandbox_best_effort(sandbox_id)
-            logger.debug(
-                "Killed near-expiry idle sandbox: pool_name=%s sandbox_id=%s source=%s",
-                pool_name,
-                sandbox_id,
-                source,
-            )
+        results = await asyncio.gather(
+            *(self._kill_sandbox_best_effort(sandbox_id) for sandbox_id in sandbox_ids),
+            return_exceptions=False,
+        )
+        for sandbox_id, killed in zip(sandbox_ids, results):
+            if killed:
+                logger.debug(
+                    "Killed near-expiry idle sandbox: pool_name=%s sandbox_id=%s source=%s",
+                    pool_name,
+                    sandbox_id,
+                    source,
+                )
 
     async def _begin_operation(self) -> None:
         async with self._in_flight_condition:
