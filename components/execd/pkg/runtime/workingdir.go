@@ -34,7 +34,7 @@ func ValidateWorkingDir(cwd string) error {
 	fi, err := os.Stat(resolvedCwd)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("working directory does not exist: %s", cwd)
+			return fmt.Errorf("working directory does not exist: %s: %w", cwd, err)
 		}
 		return fmt.Errorf("cannot access working directory %q: %w", cwd, err)
 	}
