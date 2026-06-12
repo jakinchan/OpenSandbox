@@ -56,7 +56,11 @@ interface Filesystem {
     /**
      * Backward-compatible overload for Java callers using positional args.
      */
-    fun readFile(path: String, encoding: String, range: String?): String {
+    fun readFile(
+        path: String,
+        encoding: String,
+        range: String?,
+    ): String {
         return readFile(path, encoding, range, null, null)
     }
 
@@ -92,7 +96,10 @@ interface Filesystem {
     /**
      * Backward-compatible overload for Java callers using positional args.
      */
-    fun readByteArray(path: String, range: String?): ByteArray {
+    fun readByteArray(
+        path: String,
+        range: String?,
+    ): ByteArray {
         return readByteArray(path, range, null, null)
     }
 
@@ -128,7 +135,10 @@ interface Filesystem {
     /**
      * Backward-compatible overload for Java callers using positional args.
      */
-    fun readStream(path: String, range: String?): InputStream {
+    fun readStream(
+        path: String,
+        range: String?,
+    ): InputStream {
         return readStream(path, range, null, null)
     }
 

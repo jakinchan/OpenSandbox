@@ -22,7 +22,6 @@ import logging
 from collections.abc import Iterator
 from io import IOBase, TextIOBase
 from typing import TypedDict
-from urllib.parse import quote
 
 import httpx
 
