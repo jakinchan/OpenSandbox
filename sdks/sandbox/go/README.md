@@ -153,7 +153,7 @@ _, err = sandbox.CreateCredentialVault(ctx, opensandbox.CredentialVaultCreateReq
 })
 ```
 
-See [Credential Vault](../../../docs/credential-vault.md) for auth types,
+See [Credential Vault](../../../docs/guides/credential-vault.md) for auth types,
 binding guidance, and Git/curl examples.
 
 ## API Reference
